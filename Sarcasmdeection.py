@@ -87,10 +87,123 @@ for rows in range(0, acc_det.shape[0]):
 acc_list = list(itertools.chain(*acc_news))
 
 
+stopwords = nltk.corpus.stopwords.words('english')
+sar_list_restp = [word for word in sar_list if word.lower() not in stopwords]
+acc_list_restp = [word for word in acc_list if word.lower() not in stopwords]
+
+print("Length of original Sarcasm list: {0} words\n"
+      "Length of Sarcasm list after stopwords removal: {1} words"
+      .format(len(sar_list), len(sar_list_restp)))
+
+print("=="*46)
+
+print("Length of original Acclaim list: {0} words\n"
+      "Length of Acclaim list after stopwords removal: {1} words"
+      .format(len(acc_list), len(acc_list_restp)))
 
 
+#Data cleaning for getting top 30
+from collections import Counter
+sar_cnt = Counter(sar_list_restp)
+acc_cnt = Counter(acc_list_restp)
+
+#Dictonary to Dataframe
+sar_cnt_df = pd.DataFrame(list(sar_cnt.items()), columns = ['Words', 'Freq'])
+sar_cnt_df = sar_cnt_df.sort_values(by=['Freq'], ascending=False)
+acc_cnt_df = pd.DataFrame(list(acc_cnt.items()), columns = ['Words', 'Freq'])
+acc_cnt_df = acc_cnt_df.sort_values(by=['Freq'], ascending=False)
+
+#Top 30
+sar_cnt_df_30 = sar_cnt_df.head(30)
+acc_cnt_df_30 = acc_cnt_df.head(30)
 
 
+#Plotting the top 30 Sarcasm Vs Acclaim
+from plotly import tools
+sar_tr  = go.Bar(
+    x=sar_cnt_df_30['Freq'],
+    y=sar_cnt_df_30['Words'],
+    name='Sarcasm',
+    marker=dict(
+        color='rgba(155, 89, 182, 0.6)',
+        line=dict(
+            color='rgba(155, 89, 182, 1.0)',
+            width=.3,
+        )
+    ),
+    orientation='h',
+    opacity=0.6
+)
+
+acc_tr  = go.Bar(
+    x=acc_cnt_df_30['Freq'],
+    y=acc_cnt_df_30['Words'],
+    name='Acclaim',
+    marker=dict(
+        color='rgba(88, 214, 141, 0.6)',
+        line=dict(
+            color='rgba(88, 214, 141, 1.0)',
+            width=.3,
+        )
+    ),
+    orientation='h',
+    opacity=0.6
+)
+
+fig = tools.make_subplots(rows=2, cols=1, subplot_titles=('Top 30 Most occuring words in Sarcasm Headlines',
+                                                          'Top 30 Most occuring words in Acclaim Headlines'))
+
+fig.append_trace(sar_tr, 1, 1)
+fig.append_trace(acc_tr, 2, 1)
+
+
+fig['layout'].update(height=1200, width=800)
+
+iplot(fig, filename='sar_vs_acc')
+
+
+stemmer = nltk.stem.SnowballStemmer("english", ignore_stopwords=True)
+
+print("The stemmed form of learning is: {}".format(stemmer.stem("learning")))
+print("The stemmed form of learns is: {}".format(stemmer.stem("learns")))
+print("The stemmed form of learn is: {}".format(stemmer.stem("learn")))
+print("=="*46)
+print("The stemmed form of leaves is: {}".format(stemmer.stem("leaves")))
+print("=="*46)
+
+
+from nltk.stem import WordNetLemmatizer
+lemm = WordNetLemmatizer()
+print("The lemmatized form of leaves is: {}".format(lemm.lemmatize("leaves")))
+
+
+#Sarcasm headline after Lemmatization
+sar_wost_lem = []
+for batch in sar_news:
+    sar_list_restp = [word for word in batch if word.lower() not in stopwords]
+    lemm = WordNetLemmatizer()
+    sar_list_lemm =  [lemm.lemmatize(word) for word in sar_list_restp]
+    sar_wost_lem.append(sar_list_lemm)
+
+#Acclaim headline after Lemmatization
+acc_wost_lem = []
+for batch in acc_news:
+    acc_list_restp = [word for word in batch if word.lower() not in stopwords]
+    lemm = WordNetLemmatizer()
+    acc_list_lemm =  [lemm.lemmatize(word) for word in acc_list_restp]
+    acc_wost_lem.append(sar_list_lemm)
+    
+    
+    
+from sklearn.feature_extraction.text import CountVectorizer
+vec = []
+for block in sar_wost_lem:
+    vectorizer = CountVectorizer(min_df=0)
+    sentence_transform = vectorizer.fit_transform(block)
+    vec.append(sentence_transform)
+    
+print("The features are:\n {}".format(vectorizer.get_feature_names()))
+print("\nThe vectorized array looks like:\n {}".format(sentence_transform.toarray()))
 
 
 

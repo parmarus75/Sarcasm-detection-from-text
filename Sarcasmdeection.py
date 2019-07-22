@@ -55,3 +55,51 @@ layout = go.Layout(
 fig = go.Figure(data=data, layout=layout)
 
 iplot(fig, filename='basic-bar')
+
+
+
+# NLP
+
+sar_det = sar_acc[sar_acc.is_sarcastic==1]
+sar_det.reset_index(drop=True, inplace=True)
+acc_det = sar_acc[sar_acc.is_sarcastic==0]
+acc_det.reset_index(drop=True, inplace=True)
+
+# Tokenizing the Headlines of Sarcasm
+sar_news = []
+for rows in range(0, sar_det.shape[0]):
+    head_txt = sar_det.headline[rows]
+    head_txt = head_txt.split(" ")
+    sar_news.append(head_txt)
+
+#Converting into single list for Sarcasm
+import itertools
+sar_list = list(itertools.chain(*sar_news))
+
+# Tokenizing the Headlines of Acclaim
+acc_news = []
+for rows in range(0, acc_det.shape[0]):
+    head_txt = acc_det.headline[rows]
+    head_txt = head_txt.split(" ")
+    acc_news.append(head_txt)
+    
+#Converting into single list for Acclaim
+acc_list = list(itertools.chain(*acc_news))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
